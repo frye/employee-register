@@ -18,6 +18,8 @@ const displayMenu = () => {
 				'Add a role',
 				'Add an employee',
 				'Update an employees role',
+				'Update an employees manager',
+				'Delete an employee',
 				'Exit',
 			],
 		}
@@ -44,6 +46,12 @@ const displayMenu = () => {
 					break;
 				case 'Update an employees role':
 					updateEmployeeRole();
+					break;
+				case 'Update an employees manager':
+					updateEmployeeManager();
+					break;
+				case 'Delete an employee':
+					deleteEmployee();
 					break;
 				case 'Exit':
 					process.exit();
@@ -293,6 +301,105 @@ const updateEmployeeRole = () => {
 			displayMenu();
 		})
 }
+
+const updateEmployeeManager = () => {
+	let employeeArray = [];
+	Employee.findAll({ raw: true })
+		.then(employees => {
+			employees.forEach(employee => {
+				employeeArray.push(employee.first_name + ' ' + employee.last_name);
+			});
+			inquirer.prompt([
+				{
+					type: 'list',
+					message: 'Choose employee:',
+					name: 'employee',
+					choices: employeeArray,
+				},
+				{
+					type: 'list',
+					message: 'Choose manager:',
+					name: 'manager',
+					choices: employeeArray,
+				}
+			])
+				.then(answer => {
+					if (answer.manager === answer.employee) {
+						console.log('Employee cannot be their own manager.');
+						displayMenu();
+					} else {
+						let employeeId = null;
+						let managerId = null;
+						employees.forEach(employee => {
+							if (employee.first_name + ' ' + employee.last_name === answer.employee) {
+								employeeId = employee.id;
+							}
+						});
+						employees.forEach(employee => {
+							if (employee.first_name + ' ' + employee.last_name === answer.manager) {
+								managerId = employee.id;
+							}
+						});
+						Employee.update({
+							manager_id: managerId,
+						}, {
+							where: {
+								id: employeeId
+							}
+						})
+							.then(() => {
+								console.log(`Employee ${answer.employee} manager updated successfully.`);
+								displayMenu();
+							})
+					}
+				})
+		})
+		.catch( err => {
+			console.log(err);
+			displayMenu();
+		})
+}
+
+const deleteEmployee = () => {
+	let employeeArray = [];
+	Employee.findAll({ raw: true })
+		.then(employees => {
+			employees.forEach(employee => {
+				employeeArray.push(employee.id + ' ' + employee.first_name + ' ' + employee.last_name);
+			});
+			inquirer.prompt([
+				{
+					type: 'list',
+					message: 'Choose employee to delete:',
+					name: 'employee',
+					choices: employeeArray,
+				}
+			])
+				.then(answer => {
+					let employeeId = null;
+					employees.forEach(employee => {
+						if (employee.id + ' ' + employee.first_name + ' ' + employee.last_name === answer.employee) {
+							employeeId = employee.id;
+						}
+					});
+					Employee.destroy({
+						where: {
+							id: employeeId
+						}
+					})
+						.then(() => {
+							console.log(`Employee ${answer.employee} deleted successfully.`);
+							displayMenu();
+						})
+				})
+		})
+		.catch( err => {
+			console.log(err);
+			displayMenu();
+		})
+}
+
+
 
 
 
