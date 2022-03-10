@@ -1,5 +1,6 @@
 const {Model, DataTypes} = require('sequelize');
 const sequelize = require('../util/database');
+const Role = require('./Role');
 class Employee extends Model {};
 
 Employee.init(
@@ -14,5 +15,8 @@ Employee.init(
 		tableName: 'employee',
 	}
 );
+
+Employee.belongsTo(Employee, {as: 'manager'});
+Employee.belongsTo(Role);
 
 module.exports = Employee;

@@ -1,5 +1,6 @@
 const {Model, DataTypes} = require('sequelize');
 const sequelize = require('../util/database');
+const Department = require('./Department');
 class Role extends Model {};
 
 Role.init(
@@ -13,5 +14,7 @@ Role.init(
 		tableName: 'role',
 	}
 );
+
+Role.belongsTo(Department);
 
 module.exports = Role;
