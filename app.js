@@ -17,7 +17,7 @@ const displayMenu = () => {
 				'Add department',
 				'Add a role',
 				'Add an employee',
-				'Update an employee role',
+				'Update an employees role',
 				'Exit',
 			],
 		}
@@ -42,7 +42,7 @@ const displayMenu = () => {
 				case 'Add an employee':
 					addEmployee();
 					break;
-				case 'Update an employee role':
+				case 'Update an employees role':
 					updateEmployeeRole();
 					break;
 				case 'Exit':
@@ -60,17 +60,28 @@ const viewDepartments = () => {
 }
 
 const viewRoles = () => {
-	Role.findAll({ raw: true })
+	Role.findAll({
+		raw: true,
+		include: [{
+			model: Department,
+		}]
+	})
 		.then(roles => {
-			console.table(roles);
+			console.table(roles, ['id', 'title', 'salary', 'Department.name']);
 			displayMenu();
 		})
 }
 
 const viewEmployees = () => {
-	Employee.findAll({ raw: true })
+	Employee.findAll(
+		{
+			raw: true,
+			include: [{
+				model: Role
+			}]
+		})
 		.then(employees => {
-			console.table(employees);
+			console.table(employees, ['id', 'first_name', 'last_name', 'Role.title', 'manager_id']);
 			displayMenu();
 		})
 }
@@ -150,8 +161,139 @@ const addRole = () => {
 }
 
 const addEmployee = () => {
-	
+	let roleArray = [];
+	let managerArray = [];
+
+	Role.findAll({ raw: true })
+		.then(roles => {
+			roles.forEach(role => {
+				roleArray.push(role.title);
+			});
+			Employee.findAll({ raw: true })
+				.then(employees => {
+					employees.forEach(employee => {
+						managerArray.push(employee.first_name + ' ' + employee.last_name);
+					})
+
+					inquirer.prompt([
+						{
+							type: 'input',
+							message: 'Enter employee first name:',
+							name: 'first_name',
+						},
+						{
+							type: 'input',
+							message: 'Enter employee last name:',
+							name: 'last_name',
+						},
+						{
+							type: 'list',
+							message: 'Choose role:',
+							name: 'role',
+							choices: roleArray,
+						},
+						{
+							type: 'list',
+							message: 'Choose manager:',
+							name: 'manager',
+							choices: managerArray,
+						}
+					])
+						.then(answer => {
+							let roleId = null;
+							let managerId = null;
+							roles.forEach(role => {
+								if (role.title === answer.role) {
+									roleId = role.id;
+								}
+							});
+							employees.forEach(employee => {
+								if (employee.first_name + ' ' + employee.last_name === answer.manager) {
+									managerId = employee.id;
+								}
+							});
+							Employee.create({
+								first_name: answer.first_name,
+								last_name: answer.last_name,
+								role_id: roleId,
+								manager_id: managerId,
+							})
+								.then(() => {
+									console.log(`Employee ${answer.first_name} ${answer.last_name} added successfully.`);
+									displayMenu();
+								})
+								.catch(err => {
+									console.log(err);
+									displayMenu();
+								})
+						})
+				})
+		})
 }
+
+const updateEmployeeRole = () => {
+	let employeeArray = [];
+	let roleArray = [];
+
+	Employee.findAll({ raw: true })
+		.then(employees => {
+			employees.forEach(employee => {
+				employeeArray.push(employee.first_name + ' ' + employee.last_name);
+			});		
+			Role.findAll({ raw: true })
+				.then(roles => {
+					roles.forEach(role => {
+						roleArray.push(role.title);
+					})
+
+					inquirer.prompt([
+						{
+							type: 'list',
+							message: 'Choose employee:',
+							name: 'employee',
+							choices: employeeArray,
+						},
+						{
+							type: 'list',
+							message: 'Choose role:',
+							name: 'role',
+							choices: roleArray,
+						}
+					])
+						.then(answer => {
+							let employeeId = null;
+							let roleId = null;
+							employees.forEach(employee => {
+								if (employee.first_name + ' ' + employee.last_name === answer.employee) {
+									employeeId = employee.id;
+								}
+							});
+							roles.forEach(role => {
+								if (role.title === answer.role) {
+									roleId = role.id;
+								}
+							});
+							Employee.update({
+								role_id: roleId,
+							}, {
+								where: {
+									id: employeeId
+								}
+							})
+								.then(() => {
+									console.log(`Employee ${answer.employee} role updated successfully.`);
+									displayMenu();
+								})
+						}
+						)
+				})
+		})
+		.catch(err => {
+			console.log(err);
+			displayMenu();
+		})
+}
+
 
 
 // Remove force: true and bulk data creation once testing is done
