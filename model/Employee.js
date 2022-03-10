@@ -7,8 +7,6 @@ Employee.init(
 	{
 		first_name: DataTypes.STRING,
 		last_name: DataTypes.STRING,
-		role_id: DataTypes.INTEGER,
-		manager_id: DataTypes.INTEGER,
 	},
 	{
 		sequelize,
@@ -16,7 +14,7 @@ Employee.init(
 	}
 );
 
-Employee.belongsTo(Employee, {as: 'manager'});
-Employee.belongsTo(Role);
+Employee.belongsTo(Employee, {as: 'manager', foreignKey: 'manager_id'});
+Employee.belongsTo(Role, {foreignKey: 'role_id'});
 
 module.exports = Employee;

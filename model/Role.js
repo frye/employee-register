@@ -7,7 +7,6 @@ Role.init(
 	{
 		title: DataTypes.STRING,
 		salary: DataTypes.DECIMAL,
-		departmentId: DataTypes.INTEGER,
 	},
 	{
 		sequelize,
@@ -15,6 +14,6 @@ Role.init(
 	}
 );
 
-Role.belongsTo(Department);
+Role.belongsTo(Department, {foreignKey: 'department_id'});
 
 module.exports = Role;
