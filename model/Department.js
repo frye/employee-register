@@ -7,7 +7,8 @@ Department.init(
 		name: DataTypes.STRING,
 	},
 	{
-		sequelize
+		sequelize,
+		tableName: 'department',
 	}
 );
 
