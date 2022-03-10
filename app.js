@@ -115,7 +115,7 @@ const addRole = () => {
 	Department.findAll({ raw: true })
 		.then(departments => {
 			departments.forEach(department => {
-				departmentArray.push(department.name);
+				departmentArray.push(department.id + ' ' + department.name);
 			});
 
 			inquirer.prompt([
@@ -139,14 +139,14 @@ const addRole = () => {
 				.then(answer => {
 					let departmentId = null;
 					departments.forEach(department => {
-						if (department.name === answer.department) {
+						if (department.id + ' ' + department.name === answer.department) {
 							departmentId = department.id;
 						}
 					});
 					Role.create({
 						title: answer.title,
 						salary: answer.salary,
-						departmentId: departmentId,
+						department_id: departmentId,
 					})
 						.then(() => {
 							console.log(`Role ${answer.title} added successfully.`);
